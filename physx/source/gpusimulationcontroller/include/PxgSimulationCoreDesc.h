@@ -38,7 +38,8 @@
 #define PXG_CHECK_BITSHIFT_32(lowmask, highmask, bitshift) \
 	((1 << bitshift) - 1 == lowmask) && (0xffffffff >> bitshift == highmask)
 
-#define PXG_BITSHIFT_TET_ID 20
+// 18-bit volume ID / 14-bit tetrahedron ID. Surface encoding remains 12 / 20.
+#define PXG_BITSHIFT_TET_ID 14
 #define PXG_BITSHIFT_ELEMENT_ID 20
 
 PX_COMPILE_TIME_ASSERT(PX_MAX_NB_DEFORMABLE_SURFACE_TRI == PX_MAX_NB_DEFORMABLE_SURFACE_VTX);

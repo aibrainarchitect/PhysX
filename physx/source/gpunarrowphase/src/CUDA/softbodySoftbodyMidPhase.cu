@@ -707,10 +707,11 @@ __device__ static inline void sb_tetmeshMidphaseCore2(
 	PxgSoftBodyContactWriter&					writer
 )
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 
 	//__shared__ Tetrahedron tets[WarpsPerBlock];
 
-	const PxU32 cmIdx = blockIdx.y;
+	const PxU32 cmIdx = blockIdx.x;
 
 	//we do bidirectional collision(A to B and B to A). This is to ensure we don't miss contacts when we have a soft body with 
 	//an insufficiently tessellated tetrahedron mesh.
@@ -718,7 +719,7 @@ __device__ static inline void sb_tetmeshMidphaseCore2(
 	//each block deal with one pair
 	//if (cmIdx < numNPWorkItems)
 	{
-		const PxU32 globalWarpIdx = threadIdx.y + blockIdx.x*blockDim.y;
+		const PxU32 globalWarpIdx = threadIdx.y + blockIdx.y*blockDim.y;
 
 		PxgContactManagerInput npWorkItem;
 		PxgContactManagerInput_ReadWarp(npWorkItem, cmInputs, cmIdx);
@@ -763,7 +764,7 @@ __device__ static inline void sb_tetmeshMidphaseCore2(
 
 		const PxU32 nbVerts = softbody0.mNumVerts;// s_warpScratch->nbPrimitives[0];
 
-		const PxU32 NbWarps = blockDim.y*gridDim.x;
+		const PxU32 NbWarps = blockDim.y*gridDim.y;
 
 		const PxU32* vertToSurfaceTetRemap0 = softbody0.mSurfaceVertToTetRemap;
 		//const uint4* tetIndices = softbody0.mTetIndices; //s_warpScratch->tetmeshTetIndices[0];
@@ -857,7 +858,8 @@ __device__ static inline void sb_selfCollisionMidphaseCore2(
 	PxgSoftBodyContactWriter&		writer
 )
 {
-	const PxU32 cmIdx = blockIdx.y;
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
+	const PxU32 cmIdx = blockIdx.x;
 
 	const PxU32 softbodyId = activeSoftbodies[cmIdx];
 
@@ -877,7 +879,7 @@ __device__ static inline void sb_selfCollisionMidphaseCore2(
 	//if (cmIdx < numTets)
 	{
 
-		const PxU32 globalWarpIdx = threadIdx.y + blockIdx.x*blockDim.y;
+		const PxU32 globalWarpIdx = threadIdx.y + blockIdx.y*blockDim.y;
 
 		const PxU32 idx = threadIdx.x;
 
@@ -908,7 +910,7 @@ __device__ static inline void sb_selfCollisionMidphaseCore2(
 
 		//const PxU32 nbTets = s_warpScratch->nbPrimitives[1];
 
-		const PxU32 NbWarps = blockDim.y*gridDim.x;
+		const PxU32 NbWarps = blockDim.y*gridDim.y;
 
 		//const uint4* tetIndices = s_warpScratch->meshVertsIndices;
 		const float4* tetVerts = s_warpScratch->meshVerts;
@@ -1004,15 +1006,16 @@ __device__ static inline void sb_trimeshMidphaseCore(
 	femMidphaseScratch*	s_warpScratch
 )
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 	__shared__ Tetrahedron tets[WarpsPerBlock];
 
-	const PxU32 cmIdx = blockIdx.y;
+	const PxU32 cmIdx = blockIdx.x;
 
 
 	//each block deal with one pair
 	//if (cmIdx < numNPWorkItems)
 	{
-		const PxU32 globalWarpIdx = threadIdx.y + blockIdx.x*blockDim.y;
+		const PxU32 globalWarpIdx = threadIdx.y + blockIdx.y*blockDim.y;
 
 		PxgShape softbodyShape, trimeshShape;
 		PxU32 softbodyCacheRef, trimeshCacheRef;
@@ -1051,7 +1054,7 @@ __device__ static inline void sb_trimeshMidphaseCore(
 
 		const PxU32 nbTets = softbody.mNumTets;// s_warpScratch->nbPrimitives[0];
 
-		const PxU32 NbWarps = blockDim.y*gridDim.x;
+		const PxU32 NbWarps = blockDim.y*gridDim.y;
 
 		const uint4* tetIndices = softbody.mTetIndices;// s_warpScratch->tetmeshTetIndices[0];
 		const float4* tetVerts = softbody.mPosition_InvMass;// s_warpScratch->tetmeshVerts[0];
@@ -1326,13 +1329,14 @@ __device__ static inline void sb_clothMidphaseCore(
 	femMidphaseScratch*	s_warpScratch
 )
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 	__shared__ Tetrahedron tets[WarpsPerBlock];
 
-	const PxU32 cmIdx = blockIdx.y;
+	const PxU32 cmIdx = blockIdx.x;
 	//each block deal with one pair
 	//if (cmIdx < numNPWorkItems)
 	{
-		const PxU32 globalWarpIdx = threadIdx.y + blockIdx.x*blockDim.y;
+		const PxU32 globalWarpIdx = threadIdx.y + blockIdx.y*blockDim.y;
 
 		PxgShape softbodyShape, clothShape;
 		PxU32 softbodyCacheRef, clothCacheRef;
@@ -1375,7 +1379,7 @@ __device__ static inline void sb_clothMidphaseCore(
 
 		const PxU32 nbTets = softbody.mNumTets;// s_warpScratch->nbPrimitives[0];
 
-		const PxU32 NbWarps = blockDim.y*gridDim.x;
+		const PxU32 NbWarps = blockDim.y*gridDim.y;
 
 		const uint4* tetIndices = softbody.mTetIndices;// s_warpScratch->tetmeshTetIndices[0];
 		const float4* tetVerts = softbody.mPosition_InvMass;// s_warpScratch->tetmeshVerts[0];

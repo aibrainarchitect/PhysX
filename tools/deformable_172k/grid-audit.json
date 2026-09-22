@@ -1,0 +1,29 @@
+{
+  "gpusimulationcontroller/src/CUDA/softBodyGM.cu": [
+    "sb_gm_preIntegrateLaunch",
+    "sb_gm_stepSoftbodyLaunch",
+    "sb_gm_updateTetrahedraRotationsLaunch",
+    "sb_updateTetrahedraRotationsLaunch",
+    "sb_gm_cp_solveTetrahedronsPartitionLaunch",
+    "sb_gm_cp_solveTetrahedronsJacobiPartitionLaunch",
+    "sb_gm_cp_averageVertsLaunch",
+    "sb_gm_updateTetModelVertsLaunch",
+    "sb_gm_zeroTetMultipliers",
+    "sb_gm_applyExternalDeltasLaunch",
+    "sb_gm_applyDeformationDeltasLaunch",
+    "sb_calculateStressLaunch",
+    "sb_plasticDeformLaunch",
+    "sb_plasticDeformLaunch2",
+    "sb_gm_finalizeVelocitiesLaunch"
+  ],
+  "gpunarrowphase/src/CUDA/softbodySoftbodyMidPhase.cu": [
+    "sb_tetmeshMidphaseCore2",
+    "sb_selfCollisionMidphaseCore2",
+    "sb_trimeshMidphaseCore",
+    "sb_clothMidphaseCore"
+  ],
+  "gpunarrowphase/src/CUDA/softbodyMidPhase.cu": [
+    "sb_psMidphaseGeneratePairsLaunch",
+    "sb_clothVertMidphaseCore"
+  ]
+}

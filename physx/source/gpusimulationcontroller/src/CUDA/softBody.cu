@@ -814,7 +814,7 @@ extern "C" __global__ void sb_rigidContactPrepareLaunch(
 		PxgSoftBody& softbody = softbodies[PxGetSoftBodyId(pairInd1)];
 		const PxU32 tetInd = PxGetSoftBodyElementIndex(pairInd1);
 
-		if (tetInd == 0xfffff)
+		if (tetInd == PX_MAX_NB_DEFORMABLE_VOLUME_TET)
 			continue;
 
 		const uint4 tetrahedronIdx = softbody.mSimTetIndices[tetInd];

@@ -1611,7 +1611,7 @@ bool NpScene::addDeformableVolume(PxDeformableVolume& deformableVolume)
 		return outputError<PxErrorCode::eINVALID_PARAMETER>(__LINE__,
 			"PxScene::addActor(): Deformable volume does not have simulation mesh, will not be added to scene!");
 
-	if (mDeformableVolumes.size() == PX_MAX_NB_DEFORMABLE_VOLUME)
+	if (mDeformableVolumes.size() >= PX_MAX_NB_DEFORMABLE_VOLUME)
 		return outputError<PxErrorCode::eINVALID_OPERATION>(__LINE__,
 			"PxScene::addActor(): Deformable volume exceeds maximum number of deformable volumes per scene (PX_MAX_NB_DEFORMABLE_VOLUME)!");
 

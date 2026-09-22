@@ -40,11 +40,6 @@
 #include "NpDeformableSurface.h"
 #include "NpDeformableVolume.h"
 
-#define PX_ELEMENT_FILTER_ALL	0x000fffff
-
-// Assume they are the same for now. This can potentially change in the future.
-PX_COMPILE_TIME_ASSERT(PX_ELEMENT_FILTER_ALL == PX_MAX_NB_DEFORMABLE_VOLUME_TET && PX_ELEMENT_FILTER_ALL == PX_MAX_NB_DEFORMABLE_SURFACE_TRI);
-
 using namespace physx;
 
 NpInternalAttachmentType::Enum getInternalAttachmentType(const PxDeformableElementFilterData& data, PxU32 actorIndex[2])
@@ -339,6 +334,12 @@ NpDeformableElementFilter::NpDeformableElementFilter(const PxDeformableElementFi
 		{
 			PxU32 elementStartIndex0 = 0;
 			PxU32 elementStartIndex1 = 0;
+			// Wildcard indices belong to each actor's encoding, which may differ
+			// for a volume/surface pair (including when the input actors are swapped).
+			const PxU32 allElements0 = data.actor[info.actorIndex[0]]->is<PxDeformableVolume>()
+				? PX_MAX_NB_DEFORMABLE_VOLUME_TET : PX_MAX_NB_DEFORMABLE_SURFACE_TRI;
+			const PxU32 allElements1 = data.actor[info.actorIndex[1]]->is<PxDeformableVolume>()
+				? PX_MAX_NB_DEFORMABLE_VOLUME_TET : PX_MAX_NB_DEFORMABLE_SURFACE_TRI;
 
 			for (PxU32 i = 0; i < data.groupElementCounts[info.actorIndex[0]].count; i++)
 			{
@@ -353,14 +354,14 @@ NpDeformableElementFilter::NpDeformableElementFilter(const PxDeformableElementFi
 
 				for (PxU32 j = 0; j < elementCount0 + isElementCountZero0; j++)
 				{
-					PxU32 index0 = PX_ELEMENT_FILTER_ALL;
+					PxU32 index0 = allElements0;
 
 					if (!isElementCountZero0)
 						index0 = data.groupElementIndices[info.actorIndex[0]].at(j + elementStartIndex0);
 
 					for (PxU32 k = 0; k < elementCount1 + isElementCountZero1; k++)
 					{
-						PxU32 index1 = PX_ELEMENT_FILTER_ALL;
+						PxU32 index1 = allElements1;
 
 						if (!isElementCountZero1)
 							index1 = data.groupElementIndices[info.actorIndex[1]].at(k + elementStartIndex1);

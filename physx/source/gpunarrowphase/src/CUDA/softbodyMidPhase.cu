@@ -321,20 +321,21 @@ void sb_psMidphaseGeneratePairsLaunch(
 	PxU32* PX_RESTRICT midphasePairsNum					//output
 )
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 	__shared__ __align__(16) PxU8 particleSystemMemory[sizeof(PxgParticleSystem)];
 	PxgParticleSystem& sParticleSystem = *(reinterpret_cast<PxgParticleSystem*>(particleSystemMemory));
 	__shared__ femMidphaseScratch scratchMem[MIDPHASE_WARPS_PER_BLOCK];
 
 	femMidphaseScratch* s_warpScratch = &scratchMem[threadIdx.y];
 
-	if (blockIdx.y < numWorkItems)
+	if (blockIdx.x < numWorkItems)
 	{
-		//const PxU32 globalThreadIdx = threadIdx.y * WARP_SIZE + threadIdx.x + blockIdx.x*blockDim.x*blockDim.y;
-		const PxU32 globalWarpIdx = threadIdx.y + blockIdx.x*blockDim.y;
+		//const PxU32 globalThreadIdx = threadIdx.y * WARP_SIZE + threadIdx.x + blockIdx.y*blockDim.x*blockDim.y;
+		const PxU32 globalWarpIdx = threadIdx.y + blockIdx.y*blockDim.y;
 		
 		PxgShape particleShape, softbodyShape;
 		PxU32 particleCacheRef, softbodyCacheRef;
-		LoadShapePairWarp<PxGeometryType::ePARTICLESYSTEM, PxGeometryType::eTETRAHEDRONMESH>(cmInputs, blockIdx.y, gpuShapes,
+		LoadShapePairWarp<PxGeometryType::ePARTICLESYSTEM, PxGeometryType::eTETRAHEDRONMESH>(cmInputs, blockIdx.x, gpuShapes,
 			particleShape, particleCacheRef, softbodyShape, softbodyCacheRef);
 
 		const PxU32 particleSystemId = particleShape.particleOrSoftbodyId;
@@ -374,8 +375,8 @@ void sb_psMidphaseGeneratePairsLaunch(
 
 		const PxU32 nbParticles = sParticleSystem.mCommonData.mNumParticles;
 
-		//const PxU32 NbThreads = blockDim.x*blockDim.y*gridDim.x;
-		const PxU32 NbWarps = blockDim.y*gridDim.x;
+		//const PxU32 NbThreads = blockDim.x*blockDim.y*gridDim.y;
+		const PxU32 NbWarps = blockDim.y*gridDim.y;
 
 		float4* sortedPose = reinterpret_cast<float4*>(sParticleSystem.mSortedPositions_InvMass);
 
@@ -401,7 +402,7 @@ void sb_psMidphaseGeneratePairsLaunch(
 			const PxVec3 particlePos(pos.x, pos.y, pos.z);
 
 			bv32TreeTraversal<const SoftbodyBoxTraverser, MIDPHASE_WARPS_PER_BLOCK>(s_warpScratch->bv32PackedNodes, s_warpScratch->sBv32Nodes, SoftbodyBoxTraverser(s_warpScratch, particlePos - PxVec3(cDistance), particlePos + PxVec3(cDistance), particleIndex,
-				blockIdx.y, stackSize, tStackPtr, midphasePairsNum));
+				blockIdx.x, stackSize, tStackPtr, midphasePairsNum));
 		}
 	}
 }
@@ -424,11 +425,12 @@ __device__ static inline void sb_clothVertMidphaseCore(
 	femMidphaseScratch*	s_warpScratch
 )
 {
-	const PxU32 cmIdx = blockIdx.y;
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
+	const PxU32 cmIdx = blockIdx.x;
 
 	// each block deals with one pair
 	{
-		const PxU32 globalWarpIdx = threadIdx.y + blockIdx.x*blockDim.y;
+		const PxU32 globalWarpIdx = threadIdx.y + blockIdx.y*blockDim.y;
 
 		PxgShape softbodyShape, clothShape;
 		PxU32 softbodyCacheRef, clothCacheRef;
@@ -468,7 +470,7 @@ __device__ static inline void sb_clothVertMidphaseCore(
 
 		const PxReal cDistance = contactDistance[softbodyCacheRef] + contactDistance[clothCacheRef];
 
-		const PxU32 NbWarps = blockDim.y*gridDim.x;
+		const PxU32 NbWarps = blockDim.y*gridDim.y;
 
 		const PxU32 nbVerts = cloth.mNbVerts;
 
@@ -484,7 +486,7 @@ __device__ static inline void sb_clothVertMidphaseCore(
 			const PxVec3 pos(tPos.x, tPos.y, tPos.z);
 
 			bv32TreeTraversal<const SoftbodyBoxTraverser, WarpsPerBlock>(s_warpScratch->bv32PackedNodes, s_warpScratch->sBv32Nodes, SoftbodyBoxTraverser(s_warpScratch, pos - PxVec3(cDistance), pos + PxVec3(cDistance), i,
-				blockIdx.y, stackSize, tStackPtr, midphasePairsNum));
+				blockIdx.x, stackSize, tStackPtr, midphasePairsNum));
 		}
 	}
 }

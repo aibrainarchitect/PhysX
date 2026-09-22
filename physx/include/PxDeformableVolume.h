@@ -52,16 +52,17 @@ class PxParticleBuffer;
 /**
 \brief The maximum number of tetrahedrons supported in a deformable volume tetrahedron mesh
 
-The current limit is 1'048'575.
+The current limit is 16'383. The all-ones element index is reserved for filtering.
+This build allocates 14 bits to the tetrahedron index and 18 bits to the volume ID.
 */
-#define PX_MAX_NB_DEFORMABLE_VOLUME_TET 0x000fffff
+#define PX_MAX_NB_DEFORMABLE_VOLUME_TET 0x00003fff
 
 /**
 \brief The maximum number of deformable volumes supported in a scene
 
-The current limit is 4095.
+The current limit is 262'143. CPU and GPU libraries must use the same index layout.
 */
-#define PX_MAX_NB_DEFORMABLE_VOLUME 0xfff
+#define PX_MAX_NB_DEFORMABLE_VOLUME 0x3ffff
 
 /**
 \brief Represents a deformable volume

@@ -177,7 +177,7 @@ namespace physx
 					PX_CUDA_KERNEL_PARAM(externalForcesEveryTgsIterationEnabled)
 				};
 
-				CUresult result = mCudaContext->launchKernel(GMPreIntegrateKernelFunction, numBlocks, nbActiveSoftBodies, 1, numThreadsPerWarp, numWarpsPerBlock, 1, 0, bpStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
+				CUresult result = mCudaContext->launchKernel(GMPreIntegrateKernelFunction, nbActiveSoftBodies, numBlocks, 1, numThreadsPerWarp, numWarpsPerBlock, 1, 0, bpStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 				PX_ASSERT(result == CUDA_SUCCESS);
 				PX_UNUSED(result);
 
@@ -205,7 +205,7 @@ namespace physx
 					PX_CUDA_KERNEL_PARAM(activeSoftbodiesd)
 				};
 
-				CUresult result = mCudaContext->launchKernel(GMUpdateCPVertsFunction, numBlocks2, nbActiveSoftBodies, 1, numThreadsPerBlock, 1, 1, 0, bpStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
+				CUresult result = mCudaContext->launchKernel(GMUpdateCPVertsFunction, nbActiveSoftBodies, numBlocks2, 1, numThreadsPerBlock, 1, 1, 0, bpStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 				PX_ASSERT(result == CUDA_SUCCESS);
 				PX_UNUSED(result);
 #if SB_GPU_DEBUG
@@ -415,7 +415,7 @@ namespace physx
 			PxU32 numWarpsPerBlock = MIDPHASE_WARPS_PER_BLOCK;
 			PxU32 numBlocks = PxgSoftBodyKernelGridDim::SB_SBMIDPHASE;
 
-			CUresult result = mCudaContext->launchKernel(scMidphaseFunction, numBlocks, nbActiveSelfCollisionSoftbodies, 1, WARP_SIZE, numWarpsPerBlock, 1, 0, mStream, scMidphaseKernelParams, sizeof(scMidphaseKernelParams), 0, PX_FL);
+			CUresult result = mCudaContext->launchKernel(scMidphaseFunction, nbActiveSelfCollisionSoftbodies, numBlocks, 1, WARP_SIZE, numWarpsPerBlock, 1, 0, mStream, scMidphaseKernelParams, sizeof(scMidphaseKernelParams), 0, PX_FL);
 			if (result != CUDA_SUCCESS)
 				PxGetFoundation().error(PxErrorCode::eINTERNAL_ERROR, PX_FL, "GPU sb_selfCollisionMidphaseGeneratePairsLaunch fail to launch kernel!!\n");
 
@@ -757,7 +757,7 @@ namespace physx
 					PX_CUDA_KERNEL_PARAM(activeSoftbodiesd)
 				};
 
-				CUresult result = mCudaContext->launchKernel(updateGMTRKernelFunction, numBlocks, nbActiveSoftbodies, 1, numThreadsPerBlock, 1, 1, 0, mStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
+				CUresult result = mCudaContext->launchKernel(updateGMTRKernelFunction, nbActiveSoftbodies, numBlocks, 1, numThreadsPerBlock, 1, 1, 0, mStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 				PX_ASSERT(result == CUDA_SUCCESS);
 				PX_UNUSED(result);
 
@@ -800,7 +800,7 @@ namespace physx
 						PX_CUDA_KERNEL_PARAM(activeSoftbodiesd)
 					};
 
-					CUresult result = mCudaContext->launchKernel(updateTRKernelFunction, numBlocks, nbActiveSoftbodies, 1, numThreadsPerBlock, 1, 1, 0, mStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
+					CUresult result = mCudaContext->launchKernel(updateTRKernelFunction, nbActiveSoftbodies, numBlocks, 1, numThreadsPerBlock, 1, 1, 0, mStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 					PX_ASSERT(result == CUDA_SUCCESS);
 					PX_UNUSED(result);
 
@@ -840,7 +840,7 @@ namespace physx
 					PX_CUDA_KERNEL_PARAM(activeSoftbodiesd)
 				};
 
-				CUresult result = mCudaContext->launchKernel(updateTetModelKernelFunction, numBlocks, nbActiveSoftbodies, 1, PxgSoftBodyKernelBlockDim::SB_PREINTEGRATION, 1, 1, 0, updateStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
+				CUresult result = mCudaContext->launchKernel(updateTetModelKernelFunction, nbActiveSoftbodies, numBlocks, 1, PxgSoftBodyKernelBlockDim::SB_PREINTEGRATION, 1, 1, 0, updateStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 				PX_ASSERT(result == CUDA_SUCCESS);
 				PX_UNUSED(result);
 
@@ -885,7 +885,7 @@ namespace physx
 				PX_CUDA_KERNEL_PARAM(invDt)
 			};
 
-			CUresult result = mCudaContext->launchKernel(solveTetraKernelFunction, numBlocks, nbActiveSoftbodies, 1, numThreadsPerBlock, 1, 1, 0, stream, kernelParams, sizeof(kernelParams), 0, PX_FL);
+			CUresult result = mCudaContext->launchKernel(solveTetraKernelFunction, nbActiveSoftbodies, numBlocks, 1, numThreadsPerBlock, 1, 1, 0, stream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 			PX_ASSERT(result == CUDA_SUCCESS);
 			PX_UNUSED(result);
 
@@ -936,7 +936,7 @@ namespace physx
 					PX_CUDA_KERNEL_PARAM(alwaysRunVelocityAveraging)
 				};
 
-				CUresult result = mCudaContext->launchKernel(finalizeVelocitiesKernelFunction, numBlocks, nbActiveSoftbodies, 1, numThreadsPerBlock, 1, 1, 0, mStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
+				CUresult result = mCudaContext->launchKernel(finalizeVelocitiesKernelFunction, nbActiveSoftbodies, numBlocks, 1, numThreadsPerBlock, 1, 1, 0, mStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 				PX_ASSERT(result == CUDA_SUCCESS);
 				PX_UNUSED(result);
 
@@ -1223,7 +1223,7 @@ namespace physx
 							PX_CUDA_KERNEL_PARAM(materials)
 						};
 
-						CUresult result = mCudaContext->launchKernel(GMCPSolveTetraKernelFunction, numBlocks, nbActiveSoftbodies, 1, numThreadsPerBlock, 1, 1, 0, stream, kernelParams, sizeof(kernelParams), 0, PX_FL);
+						CUresult result = mCudaContext->launchKernel(GMCPSolveTetraKernelFunction, nbActiveSoftbodies, numBlocks, 1, numThreadsPerBlock, 1, 1, 0, stream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 						PX_ASSERT(result == CUDA_SUCCESS);
 						PX_UNUSED(result);
 					}
@@ -1257,7 +1257,7 @@ namespace physx
 						                                     PX_CUDA_KERNEL_PARAM(materials) };
 
 					    CUresult result = mCudaContext->launchKernel(
-					        GMCPSolveJacobiKernelFunction, numBlocks, nbActiveSoftbodies, 1, numThreadsPerBlock, 1, 1,
+					        GMCPSolveJacobiKernelFunction, nbActiveSoftbodies, numBlocks, 1, numThreadsPerBlock, 1, 1,
 					        0, stream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 					    PX_ASSERT(result == CUDA_SUCCESS);
 					    PX_UNUSED(result);
@@ -1286,7 +1286,7 @@ namespace physx
 						                                     PX_CUDA_KERNEL_PARAM(invDt) };
 
 					    CUresult result = mCudaContext->launchKernel(
-					        solveTetraKernelFunction, numBlocks, nbActiveSoftbodies, 1, numThreadsPerBlock, 1, 1, 0,
+					        solveTetraKernelFunction, nbActiveSoftbodies, numBlocks, 1, numThreadsPerBlock, 1, 1, 0,
 					        stream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 					    PX_ASSERT(result == CUDA_SUCCESS);
 					    PX_UNUSED(result);
@@ -1318,7 +1318,7 @@ namespace physx
 					PX_CUDA_KERNEL_PARAM(invDt)
 				};
 
-				CUresult result = mCudaContext->launchKernel(GMCPAverageKernelFunction, numBlocks, nbActiveSoftbodies, 1, PxgSoftBodyKernelBlockDim::SB_PREINTEGRATION, 1, 1, 0, stream, kernelParams, sizeof(kernelParams), 0, PX_FL);
+				CUresult result = mCudaContext->launchKernel(GMCPAverageKernelFunction, nbActiveSoftbodies, numBlocks, 1, PxgSoftBodyKernelBlockDim::SB_PREINTEGRATION, 1, 1, 0, stream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 				PX_ASSERT(result == CUDA_SUCCESS);
 				PX_UNUSED(result);
 
@@ -2619,7 +2619,7 @@ namespace physx
 					PX_CUDA_KERNEL_PARAM(externalForcesEveryTgsIterationEnabled)
 				};
 
-				CUresult result = mCudaContext->launchKernel(GMPreIntegrateKernelFunction, numBlocks, nbActiveSoftbodies, 1,
+				CUresult result = mCudaContext->launchKernel(GMPreIntegrateKernelFunction, nbActiveSoftbodies, numBlocks, 1,
 					PxgSoftBodyKernelBlockDim::SB_PREINTEGRATION, 1, 1, 0, stream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 				PX_ASSERT(result == CUDA_SUCCESS);
 				PX_UNUSED(result);
@@ -2978,7 +2978,7 @@ namespace physx
 				PX_CUDA_KERNEL_PARAM(matData)
 			};
 
-			CUresult result = mCudaContext->launchKernel(calculateTetraStressKernelFunction, numBlocks, nbActiveSoftbodies, 1, numThreadsPerBlock, 1, 1, 0, mStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
+			CUresult result = mCudaContext->launchKernel(calculateTetraStressKernelFunction, nbActiveSoftbodies, numBlocks, 1, numThreadsPerBlock, 1, 1, 0, mStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 			PX_ASSERT(result == CUDA_SUCCESS);
 			PX_UNUSED(result);
 
@@ -3027,7 +3027,7 @@ namespace physx
 				PX_CUDA_KERNEL_PARAM(materials)
 			};
 
-			CUresult result = mCudaContext->launchKernel(plasticDeformFunction, numBlocks, nbActiveSoftbodies, 1, numThreadsPerBlock, 1, 1, 0, mStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
+			CUresult result = mCudaContext->launchKernel(plasticDeformFunction, nbActiveSoftbodies, numBlocks, 1, numThreadsPerBlock, 1, 1, 0, mStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 			PX_ASSERT(result == CUDA_SUCCESS);
 			PX_UNUSED(result);
 
@@ -3039,7 +3039,7 @@ namespace physx
 
 #endif
 
-			result = mCudaContext->launchKernel(plasticDeformFunction2, numBlocks, nbActiveSoftbodies, 1, numThreadsPerBlock, 1, 1, 0, mStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
+			result = mCudaContext->launchKernel(plasticDeformFunction2, nbActiveSoftbodies, numBlocks, 1, numThreadsPerBlock, 1, 1, 0, mStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 			PX_ASSERT(result == CUDA_SUCCESS);
 			PX_UNUSED(result);
 

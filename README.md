@@ -1,5 +1,10 @@
 # NVIDIA PhysX
 
+This fork's `increase-deformable-count-172k` branch raises the deformable-volume
+count limit to 262,143 using an 18-bit body / 14-bit tetrahedron index layout.
+See [the patch notes](tools/deformable_172k/README.md) for mesh limits, build
+instructions, and validation status.
+
 <details>
 <summary>Copyright & License</summary>
 

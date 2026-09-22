@@ -3412,7 +3412,7 @@ void PxgGpuNarrowphaseCore::testSDKParticleSoftbody(PxgGpuContactManagers& gpuMa
 		PxU32 numWarpsPerBlock = MIDPHASE_WARPS_PER_BLOCK;
 
 		//each warp deal with one test. 
-		result = mCudaContext->launchKernel(sbMidphaseKernelFunction, 1024, numTests, 1, WARP_SIZE, numWarpsPerBlock, 1, 0, softbodyStream, kernelParams_stage, sizeof(kernelParams_stage), 0, PX_FL);
+		result = mCudaContext->launchKernel(sbMidphaseKernelFunction, numTests, 1024, 1, WARP_SIZE, numWarpsPerBlock, 1, 0, softbodyStream, kernelParams_stage, sizeof(kernelParams_stage), 0, PX_FL);
 
 		if (result != CUDA_SUCCESS)
 			PxGetFoundation().error(PxErrorCode::eINTERNAL_ERROR, PX_FL, "GPU sb_psMidphaseGeneratePairsLaunch fail to launch!!\n");
@@ -4476,8 +4476,8 @@ void PxgGpuNarrowphaseCore::testSDKSoftbodies(PxgGpuContactManagers& gpuManagers
 
 		PxU32 numWarpsPerBlock = MIDPHASE_WARPS_PER_BLOCK;
 		PxU32 numBlocks = PxgSoftBodyKernelGridDim::SB_SBMIDPHASE;
-		//blockIdx.y deal with one test. 
-		result = mCudaContext->launchKernel(sbsbMidphaseFirstkernelFunction, numBlocks, numTests, 2, WARP_SIZE, numWarpsPerBlock, 1, 0, softbodyStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
+		// blockIdx.x selects the test; blockIdx.y selects work within that test.
+		result = mCudaContext->launchKernel(sbsbMidphaseFirstkernelFunction, numTests, numBlocks, 2, WARP_SIZE, numWarpsPerBlock, 1, 0, softbodyStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 
 		if (result != CUDA_SUCCESS)
 			PxGetFoundation().error(PxErrorCode::eINTERNAL_ERROR, PX_FL, "GPU sb_sbMidphaseGeneratePairsLaunch fail to launch kernel!!\n");
@@ -4635,7 +4635,7 @@ void PxgGpuNarrowphaseCore::testSDKSoftbodyCloth(PxgGpuContactManagers& gpuManag
 			PxU32 numWarpsPerBlock = MIDPHASE_WARPS_PER_BLOCK;
 			PxU32 numBlocks = PxgSoftBodyKernelGridDim::SB_SBMIDPHASE;
 			//each warp deal with one test. 
-			result = mCudaContext->launchKernel(sbmeshMidphaseFirstkernelFunction, numBlocks, numTests, 1, WARP_SIZE, numWarpsPerBlock, 1, 0, softbodyStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
+			result = mCudaContext->launchKernel(sbmeshMidphaseFirstkernelFunction, numTests, numBlocks, 1, WARP_SIZE, numWarpsPerBlock, 1, 0, softbodyStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 
 			if (result != CUDA_SUCCESS)
 				PxGetFoundation().error(PxErrorCode::eINTERNAL_ERROR, PX_FL, "GPU sb_clothMidphaseGeneratePairsLaunch fail to launch kernel!!\n");
@@ -4780,7 +4780,7 @@ void PxgGpuNarrowphaseCore::testSDKSoftbodyCloth(PxgGpuContactManagers& gpuManag
 			PxU32 numWarpsPerBlock = MIDPHASE_WARPS_PER_BLOCK;
 			PxU32 numBlocks = PxgSoftBodyKernelGridDim::SB_SBMIDPHASE;
 			//each warp deal with one test. 
-			result = mCudaContext->launchKernel(sbClothMidphaseFirstkernelFunction, numBlocks, numTests, 1, WARP_SIZE, numWarpsPerBlock, 1, 0, softbodyStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
+			result = mCudaContext->launchKernel(sbClothMidphaseFirstkernelFunction, numTests, numBlocks, 1, WARP_SIZE, numWarpsPerBlock, 1, 0, softbodyStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 
 			if (result != CUDA_SUCCESS)
 				PxGetFoundation().error(PxErrorCode::eINTERNAL_ERROR, PX_FL, "GPU sb_clothVertMidphaseGeneratePairsLaunch fail to launch kernel!!\n");
@@ -5073,7 +5073,7 @@ void PxgGpuNarrowphaseCore::testSDKSoftbodyTrimesh(PxgGpuContactManagers& gpuMan
 		PxU32 numWarpsPerBlock = MIDPHASE_WARPS_PER_BLOCK;
 		PxU32 numBlocks = PxgSoftBodyKernelGridDim::SB_SBMIDPHASE;
 		//each warp deal with one test. 
-		result = mCudaContext->launchKernel(sbmeshMidphaseFirstkernelFunction, numBlocks, numTests, 1, WARP_SIZE, numWarpsPerBlock, 1, 0, softbodyStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
+		result = mCudaContext->launchKernel(sbmeshMidphaseFirstkernelFunction, numTests, numBlocks, 1, WARP_SIZE, numWarpsPerBlock, 1, 0, softbodyStream, kernelParams, sizeof(kernelParams), 0, PX_FL);
 
 		if (result != CUDA_SUCCESS)
 			PxGetFoundation().error(PxErrorCode::eINTERNAL_ERROR, PX_FL, "GPU sb_meshMidphaseGeneratePairsLaunch fail to launch kernel!!\n");

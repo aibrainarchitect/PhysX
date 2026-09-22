@@ -84,7 +84,12 @@ SET(SOURCE_DISTRO_FILE_LIST "")
 # No need to set --generate-code=arch=compute_75,code=[compute_75,sm_75]
 # since that's the default set in: compiler\internal\CMakeLists.txt (using CMAKE_CUDA_ARCHITECTURES)
 # see policy CMP0104
-IF(PX_GENERATE_GPU_REDUCED_ARCHITECTURES)
+SET(PX_CUDA_SASS_ARCHITECTURES "" CACHE STRING "Optional comma-separated CUDA SASS architectures")
+SET(PX_CUDA_PTX_ARCHITECTURES "" CACHE STRING "Optional CUDA PTX architectures")
+SET(PX_CUDA_COMPILER_THREADS "0" CACHE STRING "Threads per nvcc invocation (0 uses all CPUs)")
+IF(PX_CUDA_SASS_ARCHITECTURES)
+	GENERATE_ARCH_CODE_LIST(SASS "${PX_CUDA_SASS_ARCHITECTURES}" PTX "${PX_CUDA_PTX_ARCHITECTURES}")
+ELSEIF(PX_GENERATE_GPU_REDUCED_ARCHITECTURES)
 	GENERATE_ARCH_CODE_LIST(SASS "80,86,89,90,100,120" PTX "120")
 ELSE()
 	# Volta is the minimum compute arch required because NGC supports V100
@@ -97,7 +102,7 @@ set(CMAKE_CUDA_USE_RESPONSE_FILE_FOR_LIBRARIES 0)
 set(CMAKE_CUDA_USE_RESPONSE_FILE_FOR_OBJECTS 0)
 
 # Cuda setup that is the same for all platforms and sub-projects
-SET(PHYSX_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Werror=all-warnings -use_fast_math -ftz=true -prec-div=false -prec-sqrt=false -t0 -D_CONSOLE" CACHE INTERNAL "PhysX CUDA")
+SET(PHYSX_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Werror=all-warnings -use_fast_math -ftz=true -prec-div=false -prec-sqrt=false -t${PX_CUDA_COMPILER_THREADS} -D_CONSOLE" CACHE INTERNAL "PhysX CUDA")
 # Include the platform specific CMakeLists (The other CUDA flags that are specific to each platform are defined there)
 INCLUDE(${PHYSX_ROOT_DIR}/${PROJECT_CMAKE_FILES_DIR}/${TARGET_BUILD_PLATFORM}/CMakeLists.txt)
 

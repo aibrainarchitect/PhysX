@@ -79,7 +79,8 @@ void sb_gm_preIntegrateLaunch(
 	PxReal* speculativeCCDContactOffset,
 	const bool externalForcesEveryTgsIterationEnabled)
 {
-	const PxU32 id = activeId[blockIdx.y];
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
+	const PxU32 id = activeId[blockIdx.x];
 	PxgSoftBody& softbody = softbodies[id];
 
 	//32 warps in one block
@@ -96,7 +97,7 @@ void sb_gm_preIntegrateLaunch(
 	const PxU32 threadIdxInWarp = threadIdx.x;
 	const PxU32 warpIndex = threadIdx.y;
 
-	const PxU32 globalThreadIndex = threadIdxInWarp + WARP_SIZE * warpIndex + blockDim.x*blockDim.y*blockIdx.x;
+	const PxU32 globalThreadIndex = threadIdxInWarp + WARP_SIZE * warpIndex + blockDim.x*blockDim.y*blockIdx.y;
 
 
 	if (globalThreadIndex == 0)
@@ -237,7 +238,8 @@ extern "C" __global__ void sb_gm_stepSoftbodyLaunch(
 	const PxVec3 gravity,
 	const bool externalForcesEveryTgsIterationEnabled)
 {
-	const PxU32 id = activeId[blockIdx.y];
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
+	const PxU32 id = activeId[blockIdx.x];
 	const PxgSoftBody& softbody = softbodies[id];
 
 	const PxU32 nbVerts = softbody.mNumVertsGM;
@@ -246,7 +248,7 @@ extern "C" __global__ void sb_gm_stepSoftbodyLaunch(
 	
 	float4* PX_RESTRICT posDelta = softbody.mSimDeltaPos;
 
-	const PxU32 globalThreadIndex = threadIdx.x + blockDim.x*blockIdx.x;
+	const PxU32 globalThreadIndex = threadIdx.x + blockDim.x*blockIdx.y;
 
 	if (globalThreadIndex < nbVerts)
 	{
@@ -420,10 +422,11 @@ extern "C" __global__ void sb_gm_updateTetrahedraRotationsLaunch(
 	PxgSoftBody* gSoftbodies,
 	const PxU32* activeSoftbodies)
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 
 	__shared__ __align__(16) char tSoftbody[sizeof(PxgSoftBody)];
 
-	const PxU32 softbodyId = activeSoftbodies[blockIdx.y];
+	const PxU32 softbodyId = activeSoftbodies[blockIdx.x];
 	PxgSoftBody& softbody = gSoftbodies[softbodyId];
 
 	uint2* sSoftbody = reinterpret_cast<uint2*>(&softbody);
@@ -435,7 +438,7 @@ extern "C" __global__ void sb_gm_updateTetrahedraRotationsLaunch(
 
 	PxgSoftBody& shSoftbody = reinterpret_cast<PxgSoftBody&>(*tSoftbody);
 
-	const PxU32 tetrahedronIdx = threadIdx.x + blockIdx.x * blockDim.x;
+	const PxU32 tetrahedronIdx = threadIdx.x + blockIdx.y * blockDim.x;
 
 	const PxU32 nbTets = shSoftbody.mNumTetsGM;
 
@@ -463,10 +466,11 @@ extern "C" __global__ void sb_updateTetrahedraRotationsLaunch(
 	PxgSoftBody* gSoftbodies,
 	const PxU32* activeSoftbodies)
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 
 	__shared__ __align__(16) char tSoftbody[sizeof(PxgSoftBody)];
 
-	const PxU32 softbodyId = activeSoftbodies[blockIdx.y];
+	const PxU32 softbodyId = activeSoftbodies[blockIdx.x];
 	PxgSoftBody& softbody = gSoftbodies[softbodyId];
 
 	uint2* sSoftbody = reinterpret_cast<uint2*>(&softbody);
@@ -478,7 +482,7 @@ extern "C" __global__ void sb_updateTetrahedraRotationsLaunch(
 
 	PxgSoftBody& shSoftbody = reinterpret_cast<PxgSoftBody&>(*tSoftbody);
 
-	const PxU32 tetrahedronIdx = threadIdx.x + blockIdx.x * blockDim.x;
+	const PxU32 tetrahedronIdx = threadIdx.x + blockIdx.y * blockDim.x;
 
 	const PxU32 nbTets = shSoftbody.mNumTets;
 
@@ -1406,9 +1410,10 @@ void sb_gm_cp_solveTetrahedronsPartitionLaunch(
 	bool isFirstIteration,
 	PxsDeformableVolumeMaterialData* materials)
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 	__shared__ __align__(16) char tSoftbody[sizeof(PxgSoftBody)];
 
-	const PxU32 softbodyId = activeSoftbodies[blockIdx.y];
+	const PxU32 softbodyId = activeSoftbodies[blockIdx.x];
 	PxgSoftBody& softbody = gSoftbodies[softbodyId];
 
 	blockCopy<float>(reinterpret_cast<float*>(&tSoftbody), reinterpret_cast<float*>(&softbody), sizeof(PxgSoftBody));
@@ -1420,7 +1425,7 @@ void sb_gm_cp_solveTetrahedronsPartitionLaunch(
 	if (shSoftbody.mBodyFlags & PxDeformableBodyFlag::eKINEMATIC)
 		return;
 
-	const PxU32 groupThreadIdx = threadIdx.x + blockIdx.x * blockDim.x;
+	const PxU32 groupThreadIdx = threadIdx.x + blockIdx.y * blockDim.x;
 
 	const PxU32 nbTets = shSoftbody.mNumTetsGM;
 	const PxU32 numPartitions = shSoftbody.mNumPartitionsGM;
@@ -1461,9 +1466,10 @@ void sb_gm_cp_solveTetrahedronsJacobiPartitionLaunch(
 	bool isTGS,
 	PxsDeformableVolumeMaterialData* materials)
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 	__shared__ __align__(16) char tSoftbody[sizeof(PxgSoftBody)];
 
-	const PxU32 softbodyId = activeSoftbodies[blockIdx.y];
+	const PxU32 softbodyId = activeSoftbodies[blockIdx.x];
 	PxgSoftBody& softbody = gSoftbodies[softbodyId];
 
 	blockCopy<float>(reinterpret_cast<float*>(&tSoftbody), reinterpret_cast<float*>(&softbody), sizeof(PxgSoftBody));
@@ -1476,7 +1482,7 @@ void sb_gm_cp_solveTetrahedronsJacobiPartitionLaunch(
 	if (shSoftbody.mBodyFlags & PxDeformableBodyFlag::eKINEMATIC)
 		return;
 
-	const PxU32 groupThreadIdx = threadIdx.x + blockIdx.x * blockDim.x;
+	const PxU32 groupThreadIdx = threadIdx.x + blockIdx.y * blockDim.x;
 
 	const PxU32 nbTets = shSoftbody.mNumTetsGM;
 
@@ -1504,9 +1510,10 @@ void sb_gm_cp_averageVertsLaunch(
 	const PxU32* activeSoftbodies,
 	const PxReal invDt)
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 	__shared__ __align__(16) char tSoftbody[sizeof(PxgSoftBody)];
 
-	const PxU32 softbodyId = activeSoftbodies[blockIdx.y];
+	const PxU32 softbodyId = activeSoftbodies[blockIdx.x];
 	PxgSoftBody& softbody = gSoftbodies[softbodyId];
 
 	uint2* sSoftbody = reinterpret_cast<uint2*>(&softbody);
@@ -1522,7 +1529,7 @@ void sb_gm_cp_averageVertsLaunch(
 		return;
 	
 	//float4* accumulatedVels = &vels[offset];
-	const PxU32 groupThreadIdx = threadIdx.x + blockIdx.x * blockDim.x;
+	const PxU32 groupThreadIdx = threadIdx.x + blockIdx.y * blockDim.x;
 
 	const PxU32 numVerts = shSoftbody.mNumVertsGM;
 	const PxU32 numTets = shSoftbody.mNumTetsGM;
@@ -1586,10 +1593,11 @@ void sb_gm_updateTetModelVertsLaunch(
 	const PxU32* activeSoftbodies
 )
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 
 	__shared__ __align__(16) char tSoftbody[sizeof(PxgSoftBody)];
 
-	const PxU32 softbodyId = activeSoftbodies[blockIdx.y];
+	const PxU32 softbodyId = activeSoftbodies[blockIdx.x];
 
 	PxgSoftBody& softbody = gSoftbodies[softbodyId];
 
@@ -1602,7 +1610,7 @@ void sb_gm_updateTetModelVertsLaunch(
 
 	PxgSoftBody& shSoftbody = reinterpret_cast<PxgSoftBody&>(*tSoftbody);
 
-	const PxU32 groupThreadIdx = threadIdx.x + blockIdx.x * blockDim.x;
+	const PxU32 groupThreadIdx = threadIdx.x + blockIdx.y * blockDim.x;
 
 	const PxU32 numVerts = shSoftbody.mNumVerts;
 
@@ -1798,11 +1806,12 @@ extern "C" __global__ void sb_gm_zeroTetMultipliers(
 	const PxU32* activeSoftbodies
 )
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 
-	const PxU32 softbodyId = activeSoftbodies[blockIdx.y];
+	const PxU32 softbodyId = activeSoftbodies[blockIdx.x];
 	PxgSoftBody& softbody = gSoftbodies[softbodyId];
 
-	const PxU32 groupThreadIdx = threadIdx.x + blockIdx.x * blockDim.x;
+	const PxU32 groupThreadIdx = threadIdx.x + blockIdx.y * blockDim.x;
 
 	const PxU32 numTets = softbody.mNumTetsGM;
 	
@@ -2599,9 +2608,10 @@ extern "C" __global__ void sb_gm_applyExternalDeltasLaunch(
 	const PxReal invDt
 )
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 	__shared__ __align__(16) char tSoftbody[sizeof(PxgSoftBody)];
 
-	const PxU32 softbodyId = activeSoftbodies[blockIdx.y];
+	const PxU32 softbodyId = activeSoftbodies[blockIdx.x];
 
 	PxgSoftBody& softbody = gSoftbodies[softbodyId];
 
@@ -2617,7 +2627,7 @@ extern "C" __global__ void sb_gm_applyExternalDeltasLaunch(
 	float4 * curPositions = shSoftbody.mSimPosition_InvMass;
 	float4* vels = shSoftbody.mSimVelocity_InvMass;
 
-	const PxU32 vertIdx = threadIdx.x + blockIdx.x * blockDim.x;
+	const PxU32 vertIdx = threadIdx.x + blockIdx.y * blockDim.x;
 
 	const PxU32 nbVerts = shSoftbody.mNumVertsGM;
 
@@ -2655,9 +2665,10 @@ extern "C" __global__ void sb_gm_applyDeformationDeltasLaunch(
 	const PxReal invDt
 )
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 	__shared__ __align__(16) char tSoftbody[sizeof(PxgSoftBody)];
 
-	const PxU32 softbodyId = activeSoftbodies[blockIdx.y];
+	const PxU32 softbodyId = activeSoftbodies[blockIdx.x];
 
 	PxgSoftBody& softbody = gSoftbodies[softbodyId];
 
@@ -2673,7 +2684,7 @@ extern "C" __global__ void sb_gm_applyDeformationDeltasLaunch(
 	float4* PX_RESTRICT curPositions = shSoftbody.mSimPosition_InvMass;
 	float4* PX_RESTRICT vels = shSoftbody.mSimVelocity_InvMass;
 
-	const PxU32 groupThreadIdx = threadIdx.x + blockIdx.x * blockDim.x;
+	const PxU32 groupThreadIdx = threadIdx.x + blockIdx.y * blockDim.x;
 	const PxU32 nbJacobiVerts = shSoftbody.mNumJacobiVertices;
 
 	if (groupThreadIdx < nbJacobiVerts)
@@ -2706,9 +2717,10 @@ extern "C" __global__ void sb_calculateStressLaunch(
 	PxsDeformableVolumeMaterialData* matData
 )
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 	__shared__ __align__(16) char tSoftbody[sizeof(PxgSoftBody)];
 
-	const PxU32 softbodyId = activeSoftbodies[blockIdx.y];
+	const PxU32 softbodyId = activeSoftbodies[blockIdx.x];
 
 	PxgSoftBody& softbody = gSoftbodies[softbodyId];
 
@@ -2725,7 +2737,7 @@ extern "C" __global__ void sb_calculateStressLaunch(
 		!(shSoftbody.mBodyFlags & PxDeformableBodyFlag::eDISABLE_SELF_COLLISION))
 	{
 
-		const PxU32 tetrahedronIdx = threadIdx.x + blockIdx.x * blockDim.x;
+		const PxU32 tetrahedronIdx = threadIdx.x + blockIdx.y * blockDim.x;
 
 		const PxU32 nbTets = shSoftbody.mNumTets;
 
@@ -2813,9 +2825,10 @@ extern "C" __global__ void sb_plasticDeformLaunch(
 	PxsDeformableVolumeMaterialData* materials
 )
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 	__shared__ __align__(16) char tSoftbody[sizeof(PxgSoftBody)];
 
-	const PxU32 softbodyId = activeSoftbodies[blockIdx.y];
+	const PxU32 softbodyId = activeSoftbodies[blockIdx.x];
 
 	PxgSoftBody& softbody = gSoftbodies[softbodyId];
 
@@ -2830,7 +2843,7 @@ extern "C" __global__ void sb_plasticDeformLaunch(
 
 	if (false/*shSoftbody.mFlags & PxSoftBodyFlag::eENABLE_PLASTIC_DEFORMATION*/)
 	{
-		const PxU32 idx = threadIdx.x + blockIdx.x * blockDim.x;
+		const PxU32 idx = threadIdx.x + blockIdx.y * blockDim.x;
 		const PxU32 threadIndexInWarp = threadIdx.x & 31;
 
 		const PxU32 nbTets = shSoftbody.mNumTetsGM;
@@ -2982,9 +2995,10 @@ extern "C" __global__ void sb_plasticDeformLaunch2(
 	const PxU32* activeSoftbodies
 )
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 	__shared__ __align__(16) char tSoftbody[sizeof(PxgSoftBody)];
 
-	const PxU32 softbodyId = activeSoftbodies[blockIdx.y];
+	const PxU32 softbodyId = activeSoftbodies[blockIdx.x];
 
 	PxgSoftBody& softbody = gSoftbodies[softbodyId];
 
@@ -2999,7 +3013,7 @@ extern "C" __global__ void sb_plasticDeformLaunch2(
 
 	if (false/*shSoftbody.mFlags & PxSoftBodyFlag::eENABLE_PLASTIC_DEFORMATION*/)
 	{
-		const PxU32 idx = threadIdx.x + blockIdx.x * blockDim.x;
+		const PxU32 idx = threadIdx.x + blockIdx.y * blockDim.x;
 		const PxU32 threadIndexInWarp = threadIdx.x & 31;
 
 		const PxU32 nbTets = shSoftbody.mNumTetsGM;
@@ -3087,16 +3101,17 @@ extern "C" __global__ void sb_gm_finalizeVelocitiesLaunch(
 	const bool alwaysRunVelocityAveraging
 )
 {
+	// Grid X indexes actors/pairs; grid Y indexes work within each actor (CUDA Y <= 65535).
 	__shared__ bool isAwake[PxgSoftBodyKernelBlockDim::SB_PREINTEGRATION / 32];
 
-	const PxU32 softbodyId = activeSoftbodies[blockIdx.y];
+	const PxU32 softbodyId = activeSoftbodies[blockIdx.x];
 	PxgSoftBody& shSoftbody = gSoftbodies[softbodyId];
 
 	float4* deltaPos = shSoftbody.mSimDeltaPos;
 	float4* vels = shSoftbody.mSimVelocity_InvMass;
 	float4* positions = shSoftbody.mSimPosition_InvMass;
 
-	const PxU32 vertIdx = threadIdx.x + blockIdx.x * blockDim.x;
+	const PxU32 vertIdx = threadIdx.x + blockIdx.y * blockDim.x;
 
 	const PxU32 nbVerts = shSoftbody.mNumVertsGM;
 
